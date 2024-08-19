@@ -13,9 +13,9 @@ export const fetchMovies = createAsyncThunk('movies/fetchMovies', async (type, {
 });
 
 // Search for movies
-export const searchMovies = createAsyncThunk('movies/searchMovies', async (query) => {
-  const response = await axios.get(`${BASE_URL}/search/movie?api_key=${API_KEY}&language=en-US&query=${query}&page=1`);
-  return response.data.results;
+export const searchMovies = createAsyncThunk('movies/searchMovies', async ({ query, page }) => {
+  const response = await axios.get(`${BASE_URL}/search/movie?api_key=${API_KEY}&language=en-US&query=${query}&page=${page}`);
+  return { results: response.data.results, totalPages: response.data.total_pages };
 });
 
 // Fetch movie details
@@ -42,10 +42,15 @@ export const movieSlice = createSlice({
     status: null,
     page: 1,
     totalPages:0,
+    searchedPage: 1,
+  searchedTotalPages: 0,
   },
   reducers: {
     setPage: (state, action) => {
       state.page = action.payload;
+    },
+    setSearchedPage: (state, action) => {
+      state.searchedPage = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -64,8 +69,12 @@ export const movieSlice = createSlice({
         state.status = 'failed';
       })
       .addCase(searchMovies.fulfilled, (state, action) => {
-        state.searchedMovies = action.payload;
-        state.status = 'success';
+        if (action.meta.arg.page === 1) {
+          state.searchedMovies = action.payload.results;
+        } else {
+          state.searchedMovies = [...state.searchedMovies, ...action.payload.results];
+        }
+        state.searchedTotalPages = action.payload.totalPages;
       })
       .addCase(fetchMovieDetails.fulfilled, (state, action) => {
         state.movieDetails = action.payload;
