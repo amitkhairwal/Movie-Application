@@ -8,7 +8,8 @@ const BASE_URL = 'https://api.themoviedb.org/3';
 export const fetchMovies = createAsyncThunk('movies/fetchMovies', async (type, {getState}) => {
   const {page} = getState().movies;
   const response = await axios.get(`${BASE_URL}/movie/${type}?api_key=${API_KEY}&language=en-US&page=${page}`);
-  console.log('API Response:', response.data);
+  console.log('API Response:', page);
+
   return { type, results: response.data.results, totalPages: response.data.total_pages };
 });
 
